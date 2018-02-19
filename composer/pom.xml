@@ -89,7 +89,6 @@
     <modules>
         <module>modules/server</module>
         <module>modules/client</module>
-        <module>modules/js-tests</module>
         <module>integration-tests</module>
     </modules>
 
