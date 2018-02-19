@@ -36,7 +36,7 @@ const extractCSSBundle = new ExtractTextPlugin({ filename: './[name]-[hash].css'
 
 const isProductionBuild = process.env.NODE_ENV === 'production';
 
-const excludeTest = function(modulePath) {
+const isExternal = function(modulePath) {
     return modulePath.includes('node_modules') && !modulePath.includes('@ballerina-lang');
 };
 
@@ -58,7 +58,7 @@ const config = [{
         noParse: /vscode-languageserver-types/,
         rules: [{
             test: /\.js$/,
-            exclude: excludeTest,
+            exclude: isExternal,
             use: [
                 {
                     loader: 'babel-loader',
@@ -71,14 +71,14 @@ const config = [{
         },
         {
             test: /\.html$/,
-            exclude: excludeTest,
+            exclude: isExternal,
             use: [{
                 loader: 'html-loader',
             }],
         },
         {
             test: /\.scss$/,
-            exclude: excludeTest,
+            exclude: isExternal,
             loader: 'style-loader!css-loader!sass-loader',
         },
         {
@@ -100,7 +100,7 @@ const config = [{
         },
         {
             test: /\.jsx$/,
-            exclude: excludeTest,
+            exclude: isExternal,
             use: [
                 {
                     loader: 'babel-loader',
@@ -138,6 +138,16 @@ const config = [{
                 to: 'images',
             }
         ]),
+        new  webpack.optimize.CommonsChunkPlugin({
+            name: 'vendor',
+            minChunks: function(module) {
+                const context = module.context;
+                if (typeof context !== 'string') {
+                    return false;
+                }
+                return isExternal(context);
+            }
+        }),
         new HtmlWebpackPlugin({
             template: './src/index.ejs',
             inject: false,
@@ -177,7 +187,7 @@ const config = [{
         rules: [
             {
                 test: /\.scss$/,
-                exclude: excludeTest,
+                exclude: isExternal,
                 use: extractThemes.extract({
                     fallback: 'style-loader',
                     use: [{
